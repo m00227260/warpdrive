@@ -9,6 +9,7 @@
 #include <math.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -400,8 +401,9 @@ static int run_one_test(struct test_options *opts, struct hizip_stats *stats)
 		 * Enhance performance in sva case
 		 * no impact to non-sva case
 		 */
-		memset(out_buf, 5, hizip_priv.total_len * EXPANSION_RATIO);
-		memset(out_buf, 0, hizip_priv.total_len * EXPANSION_RATIO);
+		//memset(out_buf, 5, hizip_priv.total_len * EXPANSION_RATIO);
+		//memset(out_buf, 0, hizip_priv.total_len * EXPANSION_RATIO);
+		mlock(out_buf, hizip_priv.total_len * EXPANSION_RATIO);
 	}
 
 	ret = hizip_test_init(&sched, opts, &test_ops, &hizip_priv);
@@ -481,6 +483,9 @@ static int run_one_test(struct test_options *opts, struct hizip_stats *stats)
 	stats->v[ST_FAULTS] = stats->v[ST_MAJFLT] + stats->v[ST_MINFLT];
 
 	ret = hizip_verify_output(out_buf, opts, &hizip_priv);
+
+	if (opts->option & PERFORMANCE)
+		mlock(out_buf, hizip_priv.total_len * EXPANSION_RATIO);
 
 out_with_fini:
 	hizip_test_fini(&sched, opts);
