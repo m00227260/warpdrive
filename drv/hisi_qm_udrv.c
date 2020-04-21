@@ -16,6 +16,8 @@
 #include "wd_drv.h"
 #include "hisi_qm_udrv.h"
 
+#define QM_CQ_DEPTH 16
+
 #define QM_SQE_SIZE		128 /* todo: get it from sysfs */
 #define QM_CQE_SIZE		16
 
@@ -80,7 +82,7 @@ static int hisi_qm_fill_sqe(void *sqe, struct hisi_qm_queue_info *info, __u16 i)
 {
 	memcpy(info->sq_base + i * info->sqe_size, sqe, info->sqe_size);
 
-	assert(!info->req_cache[i]);
+	//assert(!info->req_cache[i]);
 	info->req_cache[i] = sqe;
 
 	return 0;
@@ -187,10 +189,12 @@ int hisi_qm_add_to_dio_q(struct wd_queue *q, void *req)
 	struct hisi_qm_queue_info *info = (struct hisi_qm_queue_info *)q->priv;
 	__u16 i;
 
+	/*
 	if (info->is_sq_full) {
 		WD_ERR("queue is full!\n");
 		return -EBUSY;
 	}
+	*/
 
 	i = info->sq_tail_index;
 
@@ -198,7 +202,7 @@ int hisi_qm_add_to_dio_q(struct wd_queue *q, void *req)
 
 	mb(); /* make sure the request is all in memory before doorbell*/
 
-	if (i == (QM_Q_DEPTH - 1))
+	if (i == (QM_CQ_DEPTH - 1))
 		i = 0;
 	else
 		i++;
@@ -253,7 +257,10 @@ int hisi_qm_get_from_dio_q(struct wd_queue *q, void **resp)
 	info->db(info, DOORBELL_CMD_CQ, i, 0);
 
 	info->cq_head_index = i;
-	info->sq_head_index = i;
+	if (info->sq_head_index == (QM_Q_DEPTH - 1))
+		info->sq_head_index = 0;
+	else
+		info->sq_head_index++;
 
 	return ret;
 }
