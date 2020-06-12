@@ -110,6 +110,7 @@ int hisi_cipher_init(struct wd_cipher_sess *sess)
 	/* fix me: how to do with this? */
 	ret = hisi_sec_init(sec_sess);
 	if (ret < 0) {
+		WD_ERR("hisi sec init failed\n");
 		free(sec_sess);
 		sess->priv = NULL;
 	}
