@@ -21,7 +21,7 @@ struct hisi_sec_sqe_type2 {
 	__u16 icvw_kmode;
 
 	/* c_alg; 0~3 bits */
-	__u8 c_alg:4;
+	__u8 c_alg;
 
 	__u8 rsvd4;
 	/*
