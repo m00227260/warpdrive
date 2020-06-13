@@ -84,13 +84,13 @@ int hisi_sec_set_key(struct hisi_sec_sess *sess, const __u8 *key, __u32 key_len)
 }
 
 /* should define a struct to pass aead, cipher to this function */
-int hisi_sec_encrypt(struct hisi_sec_sess *sess, int a)
+int hisi_sec_encrypt(struct hisi_sec_sess *sess, struct wd_cipher_arg *arg)
 {
 	return 0;
 }
 
 /* same as above */
-int hisi_sec_decrypt(struct hisi_sec_sess *sess, int a)
+int hisi_sec_decrypt(struct hisi_sec_sess *sess, struct wd_cipher_arg *arg)
 {
 	return 0;
 }
@@ -145,13 +145,13 @@ int hisi_cipher_set_key(struct wd_cipher_sess *sess, const __u8 *key, __u32 key_
 int hisi_cipher_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	/* this function may be reused by aead, should change to proper inputs */
-	return hisi_sec_encrypt(sess->priv, 0);
+	return hisi_sec_encrypt(sess, arg);
 }
 
 int hisi_cipher_decrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	/* this function may be reused by aead, should change to proper inputs */
-	return hisi_sec_decrypt(sess->priv, 0);
+	return hisi_sec_decrypt(sess, arg);
 }
 
 int hisi_cipher_poll(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
