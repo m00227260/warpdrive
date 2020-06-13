@@ -75,22 +75,29 @@ void hisi_sec_exit(struct hisi_sec_sess *sec_sess)
 	/* wd_release_ctx */
 }
 
-int hisi_sec_set_key(struct hisi_sec_sess *sess, const __u8 *key, __u32 key_len)
+int hisi_sec_set_key(struct wd_cipher_arg *arg, const __u8 *key, __u32 key_len)
 {
 	/* store key to sess */
-	memcpy(sess->key, key, key_len);
+	memcpy(arg->key, key, key_len);
+	arg->key_bytes = key_len;
 
 	return 0;
 }
 
+void hisi_cipher_create_request(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg,
+				struct hisi_sec_sqe *sqe)
+{
+
+}
+
 /* should define a struct to pass aead, cipher to this function */
-int hisi_sec_encrypt(struct hisi_sec_sess *sess, struct wd_cipher_arg *arg)
+int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	return 0;
 }
 
 /* same as above */
-int hisi_sec_decrypt(struct hisi_sec_sess *sess, struct wd_cipher_arg *arg)
+int hisi_sec_decrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	return 0;
 }

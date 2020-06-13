@@ -3,6 +3,7 @@
 #define	__HISI_SEC_H
 
 #include "hisi_qm_udrv.h"
+#include "include/sec_usr_if.h"
 #include "wd.h"
 #include "wd_cipher.h"
 #include "wd_digest.h"
