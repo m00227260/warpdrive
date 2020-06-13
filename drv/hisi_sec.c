@@ -45,8 +45,6 @@ int hisi_qm_recv_t(struct hisi_qp_ctx_temp *qp_ctx, void **resp)
 struct hisi_sec_sess {
 	struct hisi_qp_ctx_temp qp_ctx;
 	char *node_path;
-	void *key;
-	__u32 key_len;
 };
 
 int hisi_sec_init(struct hisi_sec_sess *sec_sess)
@@ -93,7 +91,33 @@ void hisi_cipher_create_request(struct wd_cipher_sess *sess, struct wd_cipher_ar
 /* should define a struct to pass aead, cipher to this function */
 int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
+	struct hisi_sec_sess *priv;
+	struct hisi_sec_sqe *msg, *recv_msg;
+	int ret;
+
+	priv = (struct hisi_sec_sess *)sess->priv;
+	//fill hisi sec sqe;
+	hisi_cipher_create_request(sess, arg, msg);
+
+	ret = hisi_qm_send_t(&priv->qp_ctx, msg);
+	if (ret == -EBUSY) {
+		usleep(1);
+	}
+	if (ret) {
+		WD_ERR("send failed (%d)\n", ret);
+		goto out;
+	}
+recv_again:
+	ret = hisi_qm_recv_t(&priv->qp_ctx, (void **)&recv_msg);
+	if (ret == -EIO) {
+		fputs("wd recv msg failed!\n", stderr);
+		goto out;
+	} else if (ret == -EAGAIN)
+		goto recv_again;
+
 	return 0;
+out:
+	return ret;
 }
 
 /* same as above */
