@@ -35,6 +35,7 @@ enum wd_digest_mode {
 	WD_DIGEST_MODE_NONE,
 	WD_DIGEST_NORMAL,
 	WD_DIGEST_HMAC,
+	WD_DIGEST_MODE_MAX,
 };
 
 /**
@@ -85,8 +86,10 @@ struct wd_digest_arg {
 	enum wd_digest_mode mode;
 	void *in;
 	void *out;
+	void *key;
 	__u32 in_bytes;
 	__u32 out_bytes;
+	__u32 key_bytes;
 	int has_next;
 	wd_alg_digest_cb_t *cb;
 	void *priv;

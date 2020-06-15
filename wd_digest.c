@@ -37,6 +37,18 @@ handle_t wd_alg_digest_alloc_sess(struct wd_digest_sess_setup *setup,
 
 	if (!setup->alg_name)
 		return 0;
+	if (setup->alg < WD_DIGEST_TYPE_NONE ||
+	    setup->alg >= WD_DIGEST_TYPE_MAX) {
+		WD_ERR("setup digest alg err.\n");
+		return -EINVAL;
+	}
+	
+	if (setup->mode < WD_DIGEST_MODE_NONE ||
+	    setup->mode >= WD_DIGEST_MODE_MAX) {
+		WD_ERR("setup digest mode err.\n");
+		return -EINVAL;
+	}
+
 	mask = calloc(1, sizeof(wd_dev_mask_t));
 	if (!mask)
 		return (handle_t)sess;
