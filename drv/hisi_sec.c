@@ -92,14 +92,15 @@ void hisi_cipher_create_request(struct wd_cipher_sess *sess, struct wd_cipher_ar
 int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	struct hisi_sec_sess *priv;
-	struct hisi_sec_sqe *msg, *recv_msg;
+	struct hisi_sec_sqe msg = {0};
+	struct hisi_sec_sqe recv_msg = {0};
 	int ret;
 
 	priv = (struct hisi_sec_sess *)sess->priv;
 	//fill hisi sec sqe;
-	hisi_cipher_create_request(sess, arg, msg);
+	hisi_cipher_create_request(sess, arg, &msg);
 
-	ret = hisi_qm_send_t(&priv->qp_ctx, msg);
+	ret = hisi_qm_send_t(&priv->qp_ctx, &msg);
 	if (ret == -EBUSY) {
 		usleep(1);
 	}
@@ -110,7 +111,7 @@ int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 recv_again:
 	ret = hisi_qm_recv_t(&priv->qp_ctx, (void **)&recv_msg);
 	if (ret == -EIO) {
-		fputs("wd recv msg failed!\n", stderr);
+		WD_ERR("wd recv msg failed!\n");
 		goto out;
 	} else if (ret == -EAGAIN)
 		goto recv_again;
