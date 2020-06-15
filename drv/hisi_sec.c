@@ -3,7 +3,13 @@
 #include "hisi_sec.h"
 
 #define SEC_DIGEST_ALG_OFFSET 11
+#define BD_TYPE2 	      0
 #define WORD_BYTES	      4
+#define SEC_FLAG_OFFSET	      7
+#define SEC_HW_TASK_DONE      0x1
+#define SEC_DONE_MASK	      0x0001
+#define SEC_FLAG_MASK	      0x780
+#define SEC_TYPE_MASK	      0x0f
 
 /* should be removed to qm module */
 struct hisi_qp_ctx_temp {
@@ -255,6 +261,31 @@ static void qm_fill_digest_alg(struct wd_digest_sess *sess,
 
 int hisi_digest_digest(struct wd_digest_sess *sess, struct wd_digest_arg *arg)
 {
+	struct hisi_sec_sess *sec_sess = sess->priv;
+	struct hisi_sec_sqe sqe = {0};
+	struct hisi_sec_sqe sqe_recv = {0};
+	__u16 done, flag;
+	__u8 type, etype;
+
+	hisi_digest_create_request(sess, arg, &sqe);
+
+	hisi_qm_send_t(&sec_sess->qp_ctx, &sqe);
+
+	type = sqe_recv.type_auth_cipher & SEC_TYPE_MASK;
+	/* error handle */
+	done = sqe_recv.type2.done_flag & SEC_DONE_MASK;
+	flag = (sqe_recv.type2.done_flag & SEC_FLAG_MASK) >> SEC_FLAG_OFFSET;
+	etype = sqe_recv.type2.error_type;
+
+	/* fix me: how to handle parall, some place we need a lock */
+	hisi_qm_recv_t(&sec_sess->qp_ctx, &sqe_recv);
+	if (type == BD_TYPE2) {
+		if (done != SEC_HW_TASK_DONE || etype) {
+			WD_ERR("Digest fail! done=0x%x, etype=0x%x\n", done, etype);
+			return -EIO;
+		}
+	}
+
 	return 0;
 }
 
