@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include "hisi_sec.h"
 
+#define SEC_DIGEST_ALG_OFFSET 11
+#define WORD_BYTES	      4
+
 /* should be removed to qm module */
 struct hisi_qp_ctx_temp {
 	handle_t h_ctx;
@@ -234,6 +237,20 @@ void hisi_digest_fini(struct wd_digest_sess *sess)
 int hisi_digest_set_key(struct wd_digest_sess *sess, const __u8 *key, __u32 key_len)
 {
 	return hisi_sec_set_key(sess->priv, key, key_len);
+}
+
+static void qm_fill_digest_alg(struct wd_digest_sess *sess,
+			       struct wd_digest_arg *arg,
+			       struct hisi_sec_sqe *sqe)
+{
+	sqe->type2.mac_key_alg = (__u32)(arg->out_bytes / WORD_BYTES);
+
+	if (arg->mode == WD_DIGEST_NORMAL)
+		sqe->type2.mac_key_alg |= (__u32)(g_digest_a_alg[sess->alg]) <<
+					SEC_DIGEST_ALG_OFFSET;
+	else
+		sqe->type2.mac_key_alg |= (__u32)(g_hmac_a_alg[sess->alg]) <<
+					SEC_DIGEST_ALG_OFFSET;
 }
 
 int hisi_digest_digest(struct wd_digest_sess *sess, struct wd_digest_arg *arg)
