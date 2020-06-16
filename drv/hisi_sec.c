@@ -3,13 +3,17 @@
 #include "hisi_sec.h"
 
 #define SEC_DIGEST_ALG_OFFSET 11
-#define BD_TYPE2 	      0
+#define BD_TYPE2 	      0x2
 #define WORD_BYTES	      4
 #define SEC_FLAG_OFFSET	      7
+#define SEC_AUTH_OFFSET	      6
 #define SEC_HW_TASK_DONE      0x1
 #define SEC_DONE_MASK	      0x0001
 #define SEC_FLAG_MASK	      0x780
 #define SEC_TYPE_MASK	      0x0f
+
+#define SEC_COMM_SCENE	      0
+#define SEC_SCENE_OFFSET      3
 
 /* should be removed to qm module */
 struct hisi_qp_ctx_temp {
@@ -257,6 +261,24 @@ static void qm_fill_digest_alg(struct wd_digest_sess *sess,
 	else
 		sqe->type2.mac_key_alg |= (__u32)(g_hmac_a_alg[sess->alg]) <<
 					SEC_DIGEST_ALG_OFFSET;
+}
+
+static void hisi_digest_create_request(struct wd_digest_sess *sess,
+				struct wd_digest_arg *arg,
+				struct hisi_sec_sqe *sqe)
+{
+	__u8 de = 1;
+	__u8 scene;
+
+	/* config BD type */
+	sqe->type_auth_cipher = BD_TYPE2;
+	sqe->type_auth_cipher = AUTH_HMAC_CALCULATE << SEC_AUTH_OFFSET;
+	/* config scence */
+	scene = SEC_COMM_SCENE << SEC_SCENE_OFFSET;
+	sqe->sds_sa_type = (de | scene);
+
+	/* fix me */
+	qm_fill_digest_alg(sess, arg, sqe);	
 }
 
 int hisi_digest_digest(struct wd_digest_sess *sess, struct wd_digest_arg *arg)

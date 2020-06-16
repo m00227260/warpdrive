@@ -17,21 +17,25 @@ enum wd_cipher_op_type {
  * wd_cipher_type - Algorithm type of cipher
  */
 enum wd_cipher_alg {
+	WD_CIPHER_ALG_TYPE_NONE,
 	WD_CIPHER_SM4,
 	WD_CIPHER_AES,
 	WD_CIPHER_DES,
 	WD_CIPHER_3DES,
+	WD_CIPHER_ALG_TYPE_MAX,
 };
 /**
  * wd_cipher_mode - Algorithm mode of cipher
  */
 enum wd_cipher_mode {
+	WD_CIPHER_MODE_TYPE_NONE,
 	WD_CIPHER_ECB,
 	WD_CIPHER_CBC,
 	WD_CIPHER_CTR,
 	WD_CIPHER_XTS,
 	WD_CIPHER_OFB,
 	WD_CIPHER_CFB,
+	WD_CIPHER_MODE_TYPE_MAX,
 };
 
 struct wd_cipher_sess_setup {
@@ -54,6 +58,8 @@ struct wd_cipher_sess {
 };
 
 struct wd_cipher_arg {
+	enum wd_cipher_alg alg;
+	enum wd_cipher_mode mode;
 	void			*src;
 	void			*dst;
 	void			*iv;
