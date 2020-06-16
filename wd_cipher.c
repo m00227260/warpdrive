@@ -3,6 +3,9 @@
 #include "wd_cipher.h"
 
 #define XTS_MODE_KEY_DIVISOR 2
+#define SM4_KEY_SIZE         16
+#define DES_KEY_SIZE	     8
+#define DES3_3KEY_SIZE	     (3 * DES_KEY_SIZE)
 
 struct wd_alg_cipher {
 	char	*drv_name;
@@ -194,9 +197,44 @@ int wd_alg_decrypt(handle_t handle, struct wd_cipher_arg *arg)
 	return sess->drv->decrypt(sess, arg);
 }
 
-int cipher_key_len_check(enum wd_cipher_alg alg, __u16 length)
+static int aes_key_len_check(__u16 length)
 {
-	return 0;
+	switch (length) {
+		case AES_KEYSIZE_128:
+		case AES_KEYSIZE_192:
+		case AES_KEYSIZE_256:
+			return 0;
+		default:
+			return -EINVAL;
+	}
+}
+
+static int cipher_key_len_check(enum wd_cipher_alg alg, __u16 length)
+{
+	int ret = 0;
+
+	switch (alg) {
+	case WD_CIPHER_SM4:
+		if (length != SM4_KEY_SIZE)
+			ret = -EINVAL;
+		break;
+	case WD_CIPHER_AES:
+		ret = aes_key_len_check(length);
+		break;
+	case WD_CIPHER_DES:
+		if (length != DES_KEY_SIZE)
+			ret = -EINVAL;
+		break;
+	case WD_CIPHER_3DES:
+		if (length != DES3_3KEY_SIZE)
+			ret = -EINVAL;
+		break;
+	default:
+		WD_ERR("%s: input alg err!\n", __func__);
+		return -EINVAL;
+	}
+
+	return ret;
 }
 
 int wd_alg_set_key(handle_t handle, __u8 *key, __u32 key_len)

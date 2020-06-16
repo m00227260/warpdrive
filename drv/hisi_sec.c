@@ -103,7 +103,7 @@ void hisi_cipher_create_request(struct wd_cipher_sess *sess, struct wd_cipher_ar
 }
 
 /* should define a struct to pass aead, cipher to this function */
-int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
+int hisi_sec_crypto(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
 	struct hisi_sec_sess *priv;
 	struct hisi_sec_sqe msg = {0};
@@ -135,10 +135,25 @@ out:
 	return ret;
 }
 
-/* same as above */
+int hisi_sec_encrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
+{
+	if (arg->op_type != WD_CIPHER_ENCRYPTION) {
+		WD_ERR("wd encryption input op_type err.\n");
+		return -EINVAL;
+	}
+
+	return hisi_sec_crypto(sess, arg);
+
+}
+
 int hisi_sec_decrypt(struct wd_cipher_sess *sess, struct wd_cipher_arg *arg)
 {
-	return 0;
+	if (arg->op_type != WD_CIPHER_DECRYPTION) {
+		WD_ERR("wd decryption input op_type err.\n");
+		return -EINVAL;
+	}
+
+	return hisi_sec_crypto(sess, arg);
 }
 
 int hisi_cipher_init(struct wd_cipher_sess *sess)
