@@ -7,6 +7,7 @@
 #define WORD_BYTES	      4
 #define SEC_FLAG_OFFSET	      7
 #define SEC_AUTH_OFFSET	      6
+#define SEC_AUTH_KEY_OFFSET   5
 #define SEC_HW_TASK_DONE      0x1
 #define SEC_DONE_MASK	      0x0001
 #define SEC_FLAG_MASK	      0x780
@@ -277,6 +278,14 @@ static void hisi_digest_create_request(struct wd_digest_sess *sess,
 	scene = SEC_COMM_SCENE << SEC_SCENE_OFFSET;
 	sqe->sds_sa_type = (de | scene);
 
+	sqe->type2.alen_ivllen = (__u32)arg->in_bytes;
+	sqe->type2.data_src_addr = (__u64)arg->in;
+	sqe->type2.mac_addr = (__u64)arg->out;
+        if (arg->mode == WD_DIGEST_HMAC) {
+		/* config a key */
+		sqe->type2.mac_key_alg |= arg->key_bytes << SEC_AUTH_KEY_OFFSET;
+		sqe->type2.a_key_addr = (__u64)(arg->key);
+	}
 	/* fix me */
 	qm_fill_digest_alg(sess, arg, sqe);	
 }

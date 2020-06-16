@@ -2,6 +2,8 @@
 #include "hisi_sec.h"
 #include "wd_digest.h"
 
+#define MAX_HMAC_KEY_SIZE	128
+
 struct wd_alg_digest {
 	char	*drv_name;
 	char	*alg_name;
@@ -174,6 +176,10 @@ int wd_alg_set_digest_key(handle_t handle, __u8 *key, __u32 key_len)
 	/* fix me: need check key_len */
 	if (!key)
 		return -EINVAL;
+	if (key_len > MAX_HMAC_KEY_SIZE) {
+		WD_ERR("input key lenght is err.\n");
+		return -EINVAL;
+	}
 
 	return sess->drv->set_key(sess, key, key_len);
 }
